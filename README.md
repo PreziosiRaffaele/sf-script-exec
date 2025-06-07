@@ -1,145 +1,86 @@
-# sf-clean-force
+# sf-script-exec
 
-[![NPM](https://img.shields.io/npm/v/sf-clean-force.svg?label=sf-clean-force)](https://www.npmjs.com/package/sf-clean-force) [![Downloads/week](https://img.shields.io/npm/dw/sf-clean-force.svg)](https://npmjs.org/package/sf-clean-force) [![License](https://img.shields.io/badge/License-BSD%203--Clause-brightgreen.svg)](https://raw.githubusercontent.com/salesforcecli/sf-clean-force/main/LICENSE.txt)
-
-## Using the template
-
-This repository provides a template for creating a plugin for the Salesforce CLI. To convert this template to a working plugin:
-
-1. Please get in touch with the Platform CLI team. We want to help you develop your plugin.
-2. Generate your plugin:
-
-   ```
-   sf plugins install dev
-   sf dev generate plugin
-
-   git init -b main
-   git add . && git commit -m "chore: initial commit"
-   ```
-
-3. Create your plugin's repo in the salesforcecli github org
-4. When you're ready, replace the contents of this README with the information you want.
-
-## Learn about `sf` plugins
-
-Salesforce CLI plugins are based on the [oclif plugin framework](<(https://oclif.io/docs/introduction.html)>). Read the [plugin developer guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_architecture_sf_cli.htm) to learn about Salesforce CLI plugin development.
-
-This repository contains a lot of additional scripts and tools to help with general Salesforce node development and enforce coding standards. You should familiarize yourself with some of the [node developer packages](#tooling) used by Salesforce.
-
-Additionally, there are some additional tests that the Salesforce CLI will enforce if this plugin is ever bundled with the CLI. These test are included by default under the `posttest` script and it is required to keep these tests active in your plugin if you plan to have it bundled.
-
-### Tooling
-
-- [@salesforce/core](https://github.com/forcedotcom/sfdx-core)
-- [@salesforce/kit](https://github.com/forcedotcom/kit)
-- [@salesforce/sf-plugins-core](https://github.com/salesforcecli/sf-plugins-core)
-- [@salesforce/ts-types](https://github.com/forcedotcom/ts-types)
-- [@salesforce/ts-sinon](https://github.com/forcedotcom/ts-sinon)
-- [@salesforce/dev-config](https://github.com/forcedotcom/dev-config)
-- [@salesforce/dev-scripts](https://github.com/forcedotcom/dev-scripts)
-
-### Hooks
-
-For cross clouds commands, e.g. `sf env list`, we utilize [oclif hooks](https://oclif.io/docs/hooks) to get the relevant information from installed plugins.
-
-This plugin includes sample hooks in the [src/hooks directory](src/hooks). You'll just need to add the appropriate logic. You can also delete any of the hooks if they aren't required for your plugin.
-
-# Everything past here is only a suggestion as to what should be in your specific plugin's description
-
-This plugin is bundled with the [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). For more information on the CLI, read the [getting started guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm).
-
-We always recommend using the latest version of these commands bundled with the CLI, however, you can install a specific version or tag if needed.
+A Salesforce CLI plugin to execute data cleaning and maintenance scripts on Salesforce orgs.
 
 ## Install
 
 ```bash
-sf plugins install sf-clean-force@x.y.z
+sf plugins install sf-script-exec
 ```
 
-## Issues
+## Usage
 
-Please report any issues at https://github.com/forcedotcom/cli/issues
+This plugin allows you to execute custom scripts against Salesforce orgs for data cleaning and maintenance activities. Scripts must export an `execute` function that receives a jsforce connection object.
 
-## Contributing
+### Script Format
 
-1. Please read our [Code of Conduct](CODE_OF_CONDUCT.md)
-2. Create a new issue before starting your project so that we can keep track of
-   what you are trying to add/fix. That way, we can also offer suggestions or
-   let you know if there is already an effort in progress.
-3. Fork this repository.
-4. [Build the plugin locally](#build)
-5. Create a _topic_ branch in your fork. Note, this step is recommended but technically not required if contributing using a fork.
-6. Edit the code in your fork.
-7. Write appropriate tests for your changes. Try to achieve at least 95% code coverage on any new code. No pull request will be accepted without unit tests.
-8. Sign CLA (see [CLA](#cla) below).
-9. Send us a pull request when you are done. We'll review your code, suggest any needed changes, and merge it in.
+Your script file should follow this format:
 
-### CLA
+```javascript
+export async function execute(conn) {
+  // Your script logic here
+  // conn is a jsforce connection object
 
-External contributors will be required to sign a Contributor's License
-Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
-
-### Build
-
-To build the plugin locally, make sure to have yarn installed and run the following commands:
-
-```bash
-# Clone the repository
-git clone git@github.com:salesforcecli/sf-clean-force
-
-# Install the dependencies and compile
-yarn && yarn build
+  return {
+    success: true,
+    message: 'Optional success message',
+  };
+}
 ```
 
-To use your plugin, run using the local `./bin/dev` or `./bin/dev.cmd` file.
+### Example Script
 
-```bash
-# Run using local run file.
-./bin/dev hello world
-```
+```javascript
+export async function execute(conn) {
+  try {
+    // Query some records
+    const result = await conn.query('SELECT Id, Name FROM Account LIMIT 10');
 
-There should be no differences when running via the Salesforce CLI or using the local run file. However, it can be useful to link the plugin to do some additional testing or run your commands from anywhere on your machine.
+    // Process the records
+    console.log(`Found ${result.totalSize} accounts`);
 
-```bash
-# Link your plugin to the sf cli
-sf plugins link .
-# To verify
-sf plugins
+    return {
+      success: true,
+      message: `Processed ${result.totalSize} accounts successfully`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+}
 ```
 
 ## Commands
 
-<!-- commands -->
+- [`sf script exec`](#sf-script-exec)
 
-- [`sf hello world`](#sf-hello-world)
+### `sf script exec`
 
-## `sf hello world`
-
-Say hello either to the world or someone you know.
+Execute a script against a Salesforce org.
 
 ```
 USAGE
-  $ sf hello world [--json] [-n <value>]
+  $ sf script exec -o <targetusername> -f <script-file> [--json] [-a <api-version>]
 
 FLAGS
-  -n, --name=<value>  [default: World] The name of the person you'd like to say hello to.
+  -o, --targetusername=<value>  (required) Salesforce username for the target org
+  -f, --script-file=<value>     (required) Path to the script file to execute
+  -a, --api-version=<value>     API version for the Salesforce connection
 
 GLOBAL FLAGS
-  --json  Format output as json.
+  --json  Format output as json
 
 DESCRIPTION
-  Say hello either to the world or someone you know.
-
-  Say hello either to the world or someone you know.
+  Execute a script against a Salesforce org for data cleaning and maintenance activities.
 
 EXAMPLES
-  Say hello to the world:
+  Execute a script against an org:
 
-    $ sf hello world
+    $ sf script exec -o myorg@example.com -f ./scripts/cleanup.js
 
-  Say hello to someone you know:
+  Execute with specific API version:
 
-    $ sf hello world --name Astro
+    $ sf script exec -o myorg@example.com -f ./scripts/cleanup.js -a 58.0
 ```
-
-<!-- commandsstop -->
