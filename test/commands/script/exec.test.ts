@@ -1,40 +1,31 @@
-import { TestContext } from '@salesforce/core/testSetup';
+import { TestContext, MockTestOrgData } from '@salesforce/core/testSetup';
 import { expect } from 'chai';
-import { stubSfCommandUx } from '@salesforce/sf-plugins-core';
 import ScriptExec from '../../../src/commands/script/exec.js';
 
 describe('script exec', () => {
   const $$ = new TestContext();
-  let sfCommandStubs: ReturnType<typeof stubSfCommandUx>;
+  let testOrg = new MockTestOrgData();
 
   beforeEach(() => {
-    sfCommandStubs = stubSfCommandUx($$.SANDBOX);
+    testOrg = new MockTestOrgData();
+    testOrg.orgId = '00Dxx0000000000';
   });
 
   afterEach(() => {
     $$.restore();
   });
 
-  it('runs hello', async () => {
-    await ScriptExec.run([]);
-    const output = sfCommandStubs.log
-      .getCalls()
-      .flatMap((c) => c.args)
-      .join('\n');
-    expect(output).to.include('hello world');
-  });
+  it('executes script successfully', async () => {
+    await $$.stubAuths(testOrg);
 
-  it('runs hello with --json and no provided name', async () => {
-    const result = await ScriptExec.run([]);
-    expect(result.path).to.equal('src/commands/script/exec.ts');
-  });
+    const result = await ScriptExec.run([
+      '--targetusername',
+      'test-org',
+      '--script-file',
+      'test/fixtures/test-script.js',
+    ]);
 
-  it('runs hello world --name Astro', async () => {
-    await ScriptExec.run(['--name', 'Astro']);
-    const output = sfCommandStubs.log
-      .getCalls()
-      .flatMap((c) => c.args)
-      .join('\n');
-    expect(output).to.include('hello Astro');
+    expect(result.success).to.be.true;
+    expect(result.scriptMessage).to.equal('Test script executed successfully');
   });
 });
