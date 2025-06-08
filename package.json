@@ -1,7 +1,7 @@
 {
   "name": "sf-script-exec",
   "description": "Execute data cleaning activity on Salesforce",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "dependencies": {
     "@oclif/core": "^4",
     "@salesforce/core": "^8",
@@ -58,11 +58,7 @@
     "format": "wireit",
     "link-check": "wireit",
     "lint": "wireit",
-    "postinstall": "yarn husky install",
-    "postpack": "sf-clean --ignore-signing-artifacts",
-    "prepack": "sf-prepack",
     "test": "wireit",
-    "test:nuts": "nyc mocha \"**/*.nut.ts\" --slow 4500 --timeout 600000 --parallel",
     "test:only": "wireit",
     "version": "oclif readme"
   },
