@@ -1,6 +1,6 @@
 {
   "name": "sf-script-exec",
-  "description": "Execute data cleaning activity on Salesforce",
+  "description": "Execute js scripts in Salesforce CLI",
   "version": "1.0.3",
   "dependencies": {
     "@oclif/core": "^4",
