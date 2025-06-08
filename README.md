@@ -1,6 +1,6 @@
 # sf-script-exec
 
-A Salesforce CLI plugin to execute data cleaning and maintenance scripts on Salesforce orgs.
+A Salesforce CLI plugin to execute javascript data cleaning and maintenance scripts on Salesforce orgs.
 
 ## Install
 
@@ -31,25 +31,30 @@ export async function execute(conn) {
 ### Example Script
 
 ```javascript
-export async function execute(conn) {
-  try {
-    // Query some records
-    const result = await conn.query('SELECT Id, Name FROM Account LIMIT 10');
+async function execute(conn) {
+  const records = await conn.sobject('Account').find({ Industry: 'Other' }).execute();
 
-    // Process the records
-    console.log(`Found ${result.totalSize} accounts`);
+  console.log(`Found ${records.length} accounts missing Industry`);
 
-    return {
-      success: true,
-      message: `Processed ${result.totalSize} accounts successfully`,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error.message,
-    };
+  const updates = records.map((acc) => ({
+    Id: acc.Id,
+    Industry: '',
+  }));
+
+  if (updates.length > 0) {
+    const updateResult = await conn.sobject('Account').update(updates);
+    console.log(`Updated ${updateResult.length} accounts.`);
   }
+
+  return {
+    success: true,
+    message: `Processed ${records.length} accounts. Updated ${updates.length} accounts with Industry set to 'Other'.`,
+  };
 }
+
+module.exports = {
+  execute,
+};
 ```
 
 ## Commands
